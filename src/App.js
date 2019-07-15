@@ -18,30 +18,79 @@ function App() {
     charge: '',
     amount: ''
   });
+  const [alert, setAlert] = useState({show: false});
+  const [edit, setEdit] = useState(false);
+  const [id, setId] = useState(0);
+
+  //state fromfield destructure
   const {charge, amount} = formField;
 
+
+  //Handle Change Function
   const handleChange = e => {
     setFormField({...formField, [e.target.name]:e.target.value })
   }
 
+  //Handle Alert Method
+  const handleAlert = ({type, text}) => {
+    setAlert({show:true, type, text});
+
+    setTimeout(() => {
+      setAlert({show: false})
+    },3000)
+  }
+  
+  //Submit the form 
   const handleSubmit = e => {
     e.preventDefault();
-    
     if(charge !== '' && amount > 0){
-      const singleExpense = {id: uuid(), charge, amount};
-      setExpenses([...expenses, singleExpense]);
-      setFormField({
-        charge: '',
-        amount: ''
-      })
-    }
-    else{
+      //if you are updating
+      if(edit){
+        let temp = expenses.map(expense => {
+          return expense.id === id ? {...expense, charge, amount} : expense
+        });
+        setExpenses(temp);
+        setEdit(false);
+        handleAlert({type: 'success', text: 'Expense updated successfully'})
+      } 
+      else{
+        const singleExpense = {id: uuid(), charge, amount};
 
+        setExpenses([...expenses, singleExpense]);
+        handleAlert({type: 'success', text:'Expenses Added!!..'})
+      }
+      setFormField({charge: '', amount: ''});      
     }
+    else {
+       handleAlert({type: 'danger', text: `Fields cannot be empty`});
+    }
+  };
+ 
+  //Clear all items 
+  const clearItems = () => {
+    setExpenses([]);
+    handleAlert({type: 'danger', text:'All Expenses cleared'});
+  };
+
+  //Delete items
+  const handleDelete = id => {
+    const filtered = expenses.filter(expense => expense.id !== id)
+    setExpenses(filtered);
+    handleAlert({type: 'danger', text:'Item deleted Successfully'})
+  };
+
+  //Update items
+  const handleUpdate = id => {
+    let expense = expenses.find(item => item.id === id)
+    let {charge, amount} = expense;
+    setFormField({charge, amount});
+    setEdit(true);
+    setId(id);
   };
 
   return (
     <>
+      {alert.show && <Alert type={alert.type} text={alert.text} />}
       <Alert/>
       <h1>Budget Calculator</h1>
       
@@ -51,8 +100,14 @@ function App() {
            amount={amount} 
            handleChange={handleChange} 
            handleSubmit={handleSubmit}
+           edit={edit}
         />
-        <ExpenseList expenses={expenses}/>
+        <ExpenseList 
+           expenses={expenses}
+           handleDelete={handleDelete}
+           handleUpdate={handleUpdate}
+           clearItems={clearItems}
+        />
       </main>
 
       <h1>Total Spending : 
