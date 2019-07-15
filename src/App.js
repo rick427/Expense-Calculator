@@ -12,7 +12,7 @@ const initialExpenses = [
 ];
 
 function App() {
-  const [expenses, setExpense] = useState(initialExpenses);
+  const [expenses] = useState(initialExpenses);
 
   return (
     <>
